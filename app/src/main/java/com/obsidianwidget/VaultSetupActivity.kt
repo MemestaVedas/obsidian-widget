@@ -4,8 +4,8 @@ import android.app.Activity
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.provider.DocumentsContract
 import android.util.Log
+import android.view.View
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
@@ -52,6 +52,12 @@ class VaultSetupActivity : AppCompatActivity() {
         }
 
         loadExistingVault()
+        animateEntrance()
+    }
+
+    override fun finish() {
+        super.finish()
+        overridePendingTransition(R.anim.glass_slide_in_left, R.anim.glass_slide_out_right)
     }
 
     private fun loadExistingVault() {
@@ -60,23 +66,22 @@ class VaultSetupActivity : AppCompatActivity() {
         val vaultName = prefs.getString("obsidian_vault_name", null)
 
         if (vaultUri != null && vaultName != null) {
-            tvStatus.text = "Vault: $vaultName\nURI: ${Uri.parse(vaultUri).lastPathSegment}"
-            btnTestAccess.isEnabled = true
+            val shortUri = Uri.parse(vaultUri).lastPathSegment ?: "-"
+            tvStatus.text = getString(R.string.vault_status_connected, vaultName, shortUri)
+            updateTestButtonState(true)
         } else {
-            tvStatus.text = "No vault configured"
-            btnTestAccess.isEnabled = false
+            tvStatus.text = getString(R.string.vault_status_not_configured)
+            updateTestButtonState(false)
         }
     }
 
     private fun handleVaultSelected(uri: Uri) {
         Log.d("VaultSetup", "Selected vault URI: $uri")
 
-        // Take persistent permission for the vault
         val takeFlags = Intent.FLAG_GRANT_READ_URI_PERMISSION or
-                Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+            Intent.FLAG_GRANT_WRITE_URI_PERMISSION
         contentResolver.takePersistableUriPermission(uri, takeFlags)
 
-        // Store the vault info
         val docFile = DocumentFile.fromTreeUri(this, uri)
         val vaultName = docFile?.name ?: "Unknown"
 
@@ -86,12 +91,12 @@ class VaultSetupActivity : AppCompatActivity() {
             .putString("obsidian_vault_name", vaultName)
             .apply()
 
-        tvStatus.text = "Vault: $vaultName\nURI: ${uri.lastPathSegment}"
-        btnTestAccess.isEnabled = true
+        val shortUri = uri.lastPathSegment ?: "-"
+        tvStatus.text = getString(R.string.vault_status_connected, vaultName, shortUri)
+        updateTestButtonState(true)
 
         Toast.makeText(this, "Vault access granted: $vaultName", Toast.LENGTH_SHORT).show()
 
-        // Scan the vault structure
         scope.launch {
             scanVaultStructure(uri)
         }
@@ -104,7 +109,6 @@ class VaultSetupActivity : AppCompatActivity() {
 
             val prefs = getSharedPreferences("obsidian_widget_prefs", MODE_PRIVATE)
 
-            // Look for .obsidian folder
             val obsidianFolder = docFile.listFiles().find { it.name == ".obsidian" && it.isDirectory }
             if (obsidianFolder != null) {
                 Log.d("VaultSetup", "Found .obsidian folder")
@@ -113,7 +117,6 @@ class VaultSetupActivity : AppCompatActivity() {
                 }
                 prefs.edit().putString("obsidian_config_uri", obsidianFolder.uri.toString()).apply()
 
-                // Parse theme settings
                 parseObsidianSettings(obsidianFolder)
             } else {
                 Log.w("VaultSetup", "No .obsidian folder found - this may not be a valid Obsidian vault")
@@ -122,7 +125,6 @@ class VaultSetupActivity : AppCompatActivity() {
                 }
             }
 
-            // Count markdown files and folders (recursively)
             val stats = countFilesAndFolders(docFile)
             Log.d("VaultSetup", "Found ${stats.first} markdown files and ${stats.second} folders")
             prefs.edit()
@@ -136,28 +138,25 @@ class VaultSetupActivity : AppCompatActivity() {
         val prefs = getSharedPreferences("obsidian_widget_prefs", MODE_PRIVATE)
         val editor = prefs.edit()
 
-        // Look for appearance.json for theme settings
         val appearanceFile = obsidianFolder.listFiles().find { it.name == "appearance.json" }
         if (appearanceFile != null) {
             try {
                 contentResolver.openInputStream(appearanceFile.uri)?.use { stream ->
                     val content = stream.bufferedReader().readText()
-                    
-                    // Simple JSON parsing to find "cssTheme"
-                    // We avoid importing heavy libraries if standard string manipulation works for simple key extraction
+
                     val cssTheme = content.substringAfter("\"cssTheme\"", "")
                         .substringAfter(":", "")
                         .substringAfter("\"", "")
                         .substringBefore("\"", "")
                         .trim()
-                    
+
                     if (cssTheme.isNotEmpty()) {
                         editor.putString("obsidian_active_theme", cssTheme)
                         Log.d("VaultSetup", "Active theme: $cssTheme")
                     } else {
                         editor.putString("obsidian_active_theme", "Default")
                     }
-                    
+
                     editor.putString("obsidian_appearance_json", content)
                 }
             } catch (e: Exception) {
@@ -168,7 +167,6 @@ class VaultSetupActivity : AppCompatActivity() {
             editor.putString("obsidian_active_theme", "Default")
         }
 
-        // Look for themes folder
         val themesFolder = obsidianFolder.listFiles().find { it.name == "themes" && it.isDirectory }
         if (themesFolder != null) {
             val themeFiles = mutableListOf<String>()
@@ -180,15 +178,13 @@ class VaultSetupActivity : AppCompatActivity() {
                     }
                 }
             }
-            
-            // Save as comma-separated string
+
             editor.putString("obsidian_available_themes", themeFiles.joinToString(","))
             Log.d("VaultSetup", "Available themes: $themeFiles")
         } else {
             editor.putString("obsidian_available_themes", "")
         }
 
-        // Look for snippets folder
         val snippetsFolder = obsidianFolder.listFiles().find { it.name == "snippets" && it.isDirectory }
         if (snippetsFolder != null) {
             val snippets = mutableListOf<String?>()
@@ -202,7 +198,7 @@ class VaultSetupActivity : AppCompatActivity() {
             }
             Log.d("VaultSetup", "Available CSS snippets: $snippets")
         }
-        
+
         editor.apply()
     }
 
@@ -210,7 +206,7 @@ class VaultSetupActivity : AppCompatActivity() {
         var mdCount = 0
         var folderCount = 0
         val files = dir.listFiles()
-        
+
         for (file in files) {
             if (file.isDirectory && !file.name!!.startsWith(".")) {
                 folderCount++
@@ -262,6 +258,31 @@ class VaultSetupActivity : AppCompatActivity() {
         }
     }
 
+    private fun updateTestButtonState(enabled: Boolean) {
+        btnTestAccess.isEnabled = enabled
+        btnTestAccess.alpha = if (enabled) 1f else 0.62f
+    }
+
+    private fun animateEntrance() {
+        val views = listOf(
+            findViewById<View>(R.id.card_setup_intro),
+            findViewById<View>(R.id.card_setup_status),
+            btnSelectVault,
+            btnTestAccess
+        )
+
+        views.forEachIndexed { index, view ->
+            view.alpha = 0f
+            view.translationY = 20f
+            view.animate()
+                .alpha(1f)
+                .translationY(0f)
+                .setDuration(260)
+                .setStartDelay((index * 80).toLong())
+                .start()
+        }
+    }
+
     companion object {
         fun launch(activity: Activity, requestCode: Int = 1001) {
             val intent = Intent(activity, VaultSetupActivity::class.java)
@@ -269,3 +290,4 @@ class VaultSetupActivity : AppCompatActivity() {
         }
     }
 }
+

@@ -20,8 +20,8 @@ class MarkdownRenderer(private val context: Context) {
         val accentColor: Int,
         val mutedTextColor: Int,
         val backgroundColor: Int,
-        val maxLines: Int = 50,
-        val truncateLength: Int = 2000
+        val maxLines: Int = 2000,
+        val truncateLength: Int = 50000
     )
 
     /**
@@ -163,6 +163,44 @@ class MarkdownRenderer(private val context: Context) {
                 line.startsWith("---") || line.startsWith("***") -> {
                     // Horizontal rule
                     builder.append("\n────────────\n")
+                }
+                line.trimStart().startsWith("|") -> {
+                    // Table row
+                    val trimmed = line.trim()
+                    // Detect if this is a separator line (e.g. |---|---|)
+                    if (trimmed.matches(Regex("^\\|[\\s:\\-|]+\\|$"))) {
+                        // Separator line - use it to determine column alignment if needed, but for now just skip or render a divider
+                        builder.append("────────────────────────────────\n")
+                    } else {
+                        // Data or header row
+                        val cells = trimmed
+                            .removePrefix("|").removeSuffix("|")
+                            .split("|")
+                            .map { it.trim() }
+
+                        // We can't easily align columns perfectly across multiple lines because we process line-by-line here.
+                        // However, we can try to make it look cleaner by using a consistent separator.
+                        // A true table alignment requires processing the whole table block at once.
+                        
+                        val start = builder.length
+                        // Use a wider separator for better readability
+                        val formatted = cells.joinToString(" │ ") { cell ->
+                            renderInlineFormatting(cell, options).toString()
+                        }
+                        builder.append("│ $formatted │")
+                        
+                        builder.setSpan(
+                            TypefaceSpan("monospace"),
+                            start, builder.length,
+                            Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+                        )
+                        builder.setSpan(
+                            RelativeSizeSpan(0.85f),
+                            start, builder.length,
+                            Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+                        )
+                        builder.append("\n")
+                    }
                 }
                 line.isBlank() -> {
                     builder.append("\n")

@@ -14,7 +14,7 @@ class NoteRepository(context: Context) {
     companion object {
         private const val KEY_NOTES = "obsidian_notes_json"
         private const val MAX_NOTES = 20
-        private const val MAX_CONTENT_LENGTH = 2000
+        private const val MAX_CONTENT_LENGTH = 50000
     }
 
     fun getAllNotes(): List<NoteModel> {

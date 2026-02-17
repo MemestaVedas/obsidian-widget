@@ -4,6 +4,37 @@
     <string name="app_name">Obsidian Widget</string>
     <string name="widget_description">Display Obsidian notes on your home screen</string>
 
+    <!-- Main screen -->
+    <string name="main_hero_subtitle">Your vault on your home screen.</string>
+    <string name="status_not_connected">Not Connected</string>
+    <string name="status_connected">Connected to %1$s</string>
+    <string name="main_vault_card_title">Vault</string>
+    <string name="main_vault_not_connected">Tap to connect your Obsidian vault</string>
+    <string name="main_vault_connected_to">Connected · %1$s</string>
+    <string name="main_notes_card_title">Widget Notes</string>
+    <string name="main_notes_subtitle_count">%1$d notes selected</string>
+    <string name="main_notes_subtitle_empty">Choose notes to display on your widget</string>
+    <string name="main_info_files">%1$d files</string>
+    <string name="main_info_folders">%1$d folders</string>
+    <string name="main_footer_copy">This configures the default vault used for new widgets.</string>
+
+    <!-- Legacy main screen strings (kept for reference) -->
+    <string name="main_vault_stats_title">Vault Statistics</string>
+    <string name="main_files_label">Markdown Files</string>
+    <string name="main_folders_label">Folders</string>
+    <string name="main_theme_title">Theme Information</string>
+    <string name="btn_setup_change_vault">Setup / Change Vault</string>
+    <string name="btn_manage_widget_notes">Manage Widget Notes</string>
+
+    <!-- Vault setup -->
+    <string name="vault_setup_title">Vault Access</string>
+    <string name="vault_setup_description">Choose your Obsidian vault folder and grant persistent access so widgets can read notes, themes, and updates.</string>
+    <string name="vault_setup_status_title">Current Vault</string>
+    <string name="vault_status_not_configured">No vault configured</string>
+    <string name="vault_status_connected">Vault: %1$s\nURI: %2$s</string>
+    <string name="btn_select_vault_folder">Select Vault Folder</string>
+    <string name="btn_test_vault_access">Test Vault Access</string>
+
     <!-- Widget Action Overlay -->
     <string name="action_add_note">Add Note</string>
     <string name="action_remove_current">Remove Current</string>
@@ -11,18 +42,30 @@
     <string name="action_settings">Settings</string>
 
     <!-- Config Activity -->
+    <string name="config_title">Widget Configuration</string>
+    <string name="config_subtitle">Connect a vault and pick up to 20 notes. Changes apply instantly to your widget.</string>
     <string name="label_vault_path">Vault Path</string>
     <string name="btn_select_vault">Select Obsidian Vault</string>
     <string name="vault_path_placeholder">No vault selected</string>
     <string name="label_vault_name">Vault Name</string>
     <string name="hint_vault_name">Enter vault name</string>
-    <string name="label_initial_notes">Initial Notes</string>
+    <string name="label_initial_notes">Notes for Widget</string>
+    <string name="hint_search_notes">Search notes by title or path</string>
+    <string name="selection_count">0 selected · max 20</string>
+    <string name="selection_count_dynamic">%1$d selected · max 20</string>
     <string name="btn_save_config">Save &amp; Create Widget</string>
+    <string name="btn_save_config_dynamic">Save &amp; Create Widget (%1$d)</string>
+    <string name="btn_update_config_dynamic">Update Widget Notes (%1$d)</string>
+    <string name="empty_notes_state">No markdown notes found in this vault.</string>
+    <string name="empty_search_state">No matching notes. Try another keyword.</string>
+    <string name="vault_root_label">Vault root</string>
 
     <!-- Messages -->
     <string name="msg_no_notes">No notes to display</string>
     <string name="msg_vault_not_found">Vault not found. Please reconfigure the widget.</string>
     <string name="msg_select_vault_first">Please select a vault first</string>
+    <string name="msg_select_notes_required">Select at least one note</string>
+    <string name="msg_max_notes_reached">You can select up to %1$d notes</string>
     <string name="msg_config_saved">Widget configured successfully</string>
     <string name="msg_permission_required">Storage permission is required to read vault files</string>
     <string name="msg_note_added">Note added to widget</string>

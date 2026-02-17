@@ -1,53 +1,95 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="16dp"
-    android:background="@color/obsidian_bg_primary">
+    android:background="@drawable/bg_liquid_screen">
 
-    <TextView
+    <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Obsidian Vault Setup"
-        android:textSize="24sp"
-        android:textStyle="bold"
-        android:textColor="@color/obsidian_text_primary"
-        android:layout_marginBottom="24dp" />
+        android:layout_height="match_parent"
+        android:clipToPadding="false"
+        android:paddingStart="20dp"
+        android:paddingTop="48dp"
+        android:paddingEnd="20dp"
+        android:paddingBottom="32dp">
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Select your Obsidian vault folder to grant the widget access to your notes. The widget will read markdown files and apply your Obsidian theme settings."
-        android:textSize="14sp"
-        android:textColor="@color/obsidian_text_secondary"
-        android:layout_marginBottom="16dp" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
 
-    <TextView
-        android:id="@+id/tv_vault_status"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="No vault configured"
-        android:textSize="14sp"
-        android:textColor="@color/obsidian_text_primary"
-        android:padding="12dp"
-        android:background="@drawable/edit_text_dark_bg"
-        android:layout_marginBottom="16dp" />
+            <!-- Header -->
+            <LinearLayout
+                android:id="@+id/card_setup_intro"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:background="@drawable/bg_glass_card"
+                android:orientation="vertical"
+                android:padding="20dp">
 
-    <Button
-        android:id="@+id/btn_select_vault"
-        style="@style/Widget.ObsidianWidget.Button.Accent"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Select Vault Folder"
-        android:layout_marginBottom="12dp" />
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/vault_setup_title"
+                    android:textColor="@color/app_text_primary"
+                    android:textSize="24sp"
+                    android:fontFamily="sans-serif-medium" />
 
-    <Button
-        android:id="@+id/btn_test_access"
-        style="@style/Widget.ObsidianWidget.Button.Accent"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Test Vault Access"
-        android:enabled="false" />
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:lineSpacingExtra="2dp"
+                    android:text="@string/vault_setup_description"
+                    android:textColor="@color/app_text_secondary"
+                    android:textSize="14sp" />
+            </LinearLayout>
 
-</LinearLayout>
+            <!-- Current Vault Status -->
+            <LinearLayout
+                android:id="@+id/card_setup_status"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:background="@drawable/bg_glass_card"
+                android:orientation="vertical"
+                android:padding="20dp">
+
+                <TextView
+                    style="@style/Widget.ObsidianWidget.SectionLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/vault_setup_status_title" />
+
+                <TextView
+                    android:id="@+id/tv_vault_status"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_glass_stat_block"
+                    android:lineSpacingExtra="3dp"
+                    android:padding="14dp"
+                    android:text="@string/vault_status_not_configured"
+                    android:textColor="@color/app_text_primary"
+                    android:textSize="14sp" />
+            </LinearLayout>
+
+            <!-- Actions -->
+            <Button
+                android:id="@+id/btn_select_vault"
+                style="@style/Widget.ObsidianWidget.Button.Accent"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/btn_select_vault_folder" />
+
+            <Button
+                android:id="@+id/btn_test_access"
+                style="@style/Widget.ObsidianWidget.Button.Secondary"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:enabled="false"
+                android:text="@string/btn_test_vault_access" />
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+</FrameLayout>

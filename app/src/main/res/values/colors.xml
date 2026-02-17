@@ -1,42 +1,79 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Obsidian Dark Theme Colors -->
-    <color name="obsidian_bg_primary">#1e1e1e</color>
-    <color name="obsidian_bg_secondary">#262626</color>
-    <color name="obsidian_bg_tertiary">#2b2b2b</color>
-    <color name="obsidian_surface">#303030</color>
+    <!-- Legacy Obsidian palette (kept for widget rendering compatibility) -->
+    <color name="obsidian_bg_primary">#0E1526</color>
+    <color name="obsidian_bg_secondary">#13203A</color>
+    <color name="obsidian_bg_tertiary">#1A2A49</color>
+    <color name="obsidian_surface">#162643</color>
 
     <!-- Text Colors -->
-    <color name="obsidian_text_primary">#dcddde</color>
-    <color name="obsidian_text_secondary">#999999</color>
-    <color name="obsidian_text_muted">#666666</color>
+    <color name="obsidian_text_primary">#F2F6FF</color>
+    <color name="obsidian_text_secondary">#BDD0F7</color>
+    <color name="obsidian_text_muted">#92A3C8</color>
 
     <!-- Accent Colors -->
-    <color name="obsidian_accent">#7C3AED</color>
-    <color name="obsidian_accent_light">#A78BFA</color>
-    <color name="obsidian_link">#7C8CFF</color>
+    <color name="obsidian_accent">#4A7BFF</color>
+    <color name="obsidian_accent_light">#8BB2FF</color>
+    <color name="obsidian_link">#79C8FF</color>
 
     <!-- Borders & Dividers -->
-    <color name="obsidian_divider">#3d3d3d</color>
-    <color name="obsidian_border">#484848</color>
+    <color name="obsidian_divider">#2B406D</color>
+    <color name="obsidian_border">#365186</color>
 
     <!-- Overlay -->
-    <color name="obsidian_overlay">#B3000000</color>
+    <color name="obsidian_overlay">#AA051022</color>
 
     <!-- Status Colors -->
-    <color name="obsidian_success">#4CAF50</color>
-    <color name="obsidian_warning">#FFA726</color>
-    <color name="obsidian_error">#EF5350</color>
+    <color name="obsidian_success">#57D489</color>
+    <color name="obsidian_warning">#FFC862</color>
+    <color name="obsidian_error">#FF7E7E</color>
 
     <!-- Max Real Estate Design Colors -->
-    <color name="max_obsidian_deep">#16161e</color>
-    <color name="max_obsidian_card">#1e1e2e</color>
-    <color name="max_obsidian_border">#2f2f3d</color>
-    <color name="max_primary">#a882ff</color>
-    <color name="max_primary_dim">#7c5ccf</color>
-    <color name="max_text_main">#dcdcdc</color>
-    <color name="max_text_muted">#9ca3af</color>
+    <color name="max_obsidian_deep">#0A1324</color>
+    <color name="max_obsidian_card">#122241</color>
+    <color name="max_obsidian_border">#2B406D</color>
+    <color name="max_primary">#4A7BFF</color>
+    <color name="max_primary_dim">#325ED6</color>
+    <color name="max_text_main">#F2F6FF</color>
+    <color name="max_text_muted">#9AB2DF</color>
 
-    <color name="widget_dot_active">#a882ff</color>
-    <color name="widget_dot_inactive">#33ffffff</color>
+    <color name="widget_dot_active">#7DA8FF</color>
+    <color name="widget_dot_inactive">#33FFFFFF</color>
+
+    <!-- Obsidian Dark Theme System Colors -->
+    <color name="glass_bg_start">#110F19</color> <!-- Deepest Background -->
+    <color name="glass_bg_mid">#110F19</color>
+    <color name="glass_bg_end">#110F19</color>
+
+    <color name="glass_text_primary">#ECECF1</color>
+    <color name="glass_text_secondary">#8B8896</color>
+    <color name="glass_text_muted">#5A5866</color>
+
+    <color name="glass_stroke">#25FFFFFF</color>
+    <color name="glass_stroke_strong">#35FFFFFF</color>
+    <color name="glass_surface">#1E1C29</color> <!-- Card Surface -->
+    <color name="glass_surface_strong">#2A2838</color>
+
+    <color name="glass_accent">#9D86E9</color> <!-- Soft Purple Accent -->
+    <color name="glass_accent_pressed">#7E6BC4</color>
+    <color name="glass_accent_soft">#2D2644</color>
+
+    <color name="glass_chip_connected">#2C49D287</color>
+    <color name="glass_chip_disconnected">#2CFFFFFF</color>
+    <!-- App UI Flat Design Palette -->
+    <color name="app_bg">#1A1A2E</color>
+    <color name="app_surface">#242438</color>
+    <color name="app_surface_elevated">#2E2E46</color>
+    <color name="app_border">#383852</color>
+    <color name="app_text_primary">#E8E8EF</color>
+    <color name="app_text_secondary">#9898AB</color>
+    <color name="app_text_muted">#6B6B80</color>
+    <color name="app_accent">#7C6AE8</color>
+    <color name="app_accent_dim">#5E4EC0</color>
+    <color name="app_accent_bg">#2A2548</color>
+    <color name="app_success">#4AC78B</color>
+    <color name="app_success_bg">#26344A3D</color>
+    <color name="app_warning">#E8A94C</color>
+    <color name="app_warning_bg">#26483A20</color>
 </resources>
+

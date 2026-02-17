@@ -1,112 +1,200 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="24dp"
-    android:gravity="center_horizontal">
+    android:background="@drawable/bg_liquid_screen">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Obsidian Widget"
-        android:textSize="28sp"
-        android:textStyle="bold"
-        android:layout_marginBottom="32dp" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Current Vault"
-        android:textSize="18sp"
-        android:layout_marginBottom="8dp" />
-
-    <TextView
-        android:id="@+id/tv_vault_status"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Not Connected"
-        android:textSize="16sp"
-        android:textColor="@android:color/darker_gray"
-        android:layout_marginBottom="24dp" />
-
-    <!-- Vault Stats -->
-    <LinearLayout
-        android:id="@+id/layout_stats"
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/scroll_content"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:background="#1A000000"
-        android:padding="16dp"
-        android:layout_marginBottom="16dp"
-        android:visibility="gone">
+        android:layout_height="match_parent"
+        android:clipToPadding="false"
+        android:paddingStart="20dp"
+        android:paddingTop="48dp"
+        android:paddingEnd="20dp"
+        android:paddingBottom="32dp">
 
-        <TextView
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Vault Statistics"
-            android:textStyle="bold"
-            android:layout_marginBottom="8dp"/>
+            android:orientation="vertical">
 
-        <TextView
-            android:id="@+id/tv_file_count"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Files: -" />
-        
-        <TextView
-            android:id="@+id/tv_folder_count"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Folders: -" />
-    </LinearLayout>
+            <!-- Header: Title + Status Chip -->
+            <LinearLayout
+                android:id="@+id/header_row"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
 
-    <!-- Theme Info -->
-    <LinearLayout
-        android:id="@+id/layout_theme"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:background="#1A000000"
-        android:padding="16dp"
-        android:layout_marginBottom="32dp"
-        android:visibility="gone">
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/app_name"
+                    android:textColor="@color/app_text_primary"
+                    android:textSize="26sp"
+                    android:fontFamily="sans-serif-medium" />
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Theme Information"
-            android:textStyle="bold"
-            android:layout_marginBottom="8dp"/>
+                <TextView
+                    android:id="@+id/tv_vault_status"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_status_chip_disconnected"
+                    android:paddingStart="12dp"
+                    android:paddingTop="6dp"
+                    android:paddingEnd="12dp"
+                    android:paddingBottom="6dp"
+                    android:text="@string/status_not_connected"
+                    android:textColor="@color/app_text_secondary"
+                    android:textSize="12sp"
+                    android:fontFamily="sans-serif-medium" />
+            </LinearLayout>
 
-        <TextView
-            android:id="@+id/tv_current_theme"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Active Theme: -" />
-    </LinearLayout>
+            <!-- Subtitle -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:text="@string/main_hero_subtitle"
+                android:textColor="@color/app_text_muted"
+                android:textSize="14sp" />
 
-    <Button
-        android:id="@+id/btn_setup_vault"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Setup / Change Vault"
-        android:layout_marginBottom="8dp" />
+            <!-- Action Card: Vault -->
+            <LinearLayout
+                android:id="@+id/card_vault"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="28dp"
+                android:background="@drawable/bg_action_card"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:padding="20dp">
 
-    <Button
-        android:id="@+id/btn_manage_notes"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Manage Widget Notes"
-        android:layout_marginBottom="16dp"
-        android:visibility="gone" />
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="This will configure the default vault for new widgets."
-        android:textSize="14sp"
-        android:gravity="center"
-        android:textColor="@android:color/darker_gray" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/main_vault_card_title"
+                        android:textColor="@color/app_text_primary"
+                        android:textSize="17sp"
+                        android:fontFamily="sans-serif-medium" />
 
-</LinearLayout>
+                    <TextView
+                        android:id="@+id/tv_vault_subtitle"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="@string/main_vault_not_connected"
+                        android:textColor="@color/app_text_secondary"
+                        android:textSize="13sp" />
+                </LinearLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="›"
+                    android:textColor="@color/app_text_muted"
+                    android:textSize="22sp"
+                    android:layout_marginStart="12dp" />
+            </LinearLayout>
+
+            <!-- Action Card: Widget Notes -->
+            <LinearLayout
+                android:id="@+id/card_notes"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:background="@drawable/bg_action_card"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:padding="20dp">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/main_notes_card_title"
+                        android:textColor="@color/app_text_primary"
+                        android:textSize="17sp"
+                        android:fontFamily="sans-serif-medium" />
+
+                    <TextView
+                        android:id="@+id/tv_notes_subtitle"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="@string/main_notes_subtitle_empty"
+                        android:textColor="@color/app_text_secondary"
+                        android:textSize="13sp" />
+                </LinearLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="›"
+                    android:textColor="@color/app_text_muted"
+                    android:textSize="22sp"
+                    android:layout_marginStart="12dp" />
+            </LinearLayout>
+
+            <!-- Inline Info Row: Files / Folders (visible when vault connected) -->
+            <LinearLayout
+                android:id="@+id/layout_info_row"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:visibility="gone">
+
+                <TextView
+                    android:id="@+id/tv_info_files"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0 files"
+                    android:textColor="@color/app_text_muted"
+                    android:textSize="13sp" />
+
+                <View
+                    android:layout_width="4dp"
+                    android:layout_height="4dp"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginEnd="10dp"
+                    android:background="@color/app_text_muted" />
+
+                <TextView
+                    android:id="@+id/tv_info_folders"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0 folders"
+                    android:textColor="@color/app_text_muted"
+                    android:textSize="13sp" />
+            </LinearLayout>
+
+            <!-- Footer -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:gravity="center"
+                android:text="@string/main_footer_copy"
+                android:textColor="@color/app_text_muted"
+                android:textSize="12sp" />
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+</FrameLayout>

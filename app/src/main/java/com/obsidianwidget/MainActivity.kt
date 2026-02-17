@@ -1,52 +1,57 @@
 package com.obsidianwidget
 
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
-import android.widget.Button
+import android.view.View
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var tvStatus: TextView
-    private lateinit var tvFileCount: TextView
-    private lateinit var tvFolderCount: TextView
-    private lateinit var tvCurrentTheme: TextView
-    private lateinit var layoutStats: android.view.View
-    private lateinit var layoutTheme: android.view.View
-    private lateinit var btnSetup: Button
-    private lateinit var btnManageNotes: Button
+    private lateinit var tvVaultSubtitle: TextView
+    private lateinit var tvNotesSubtitle: TextView
+    private lateinit var cardVault: LinearLayout
+    private lateinit var cardNotes: LinearLayout
+    private lateinit var layoutInfoRow: View
+    private lateinit var tvInfoFiles: TextView
+    private lateinit var tvInfoFolders: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
         tvStatus = findViewById(R.id.tv_vault_status)
-        tvFileCount = findViewById(R.id.tv_file_count)
-        tvFolderCount = findViewById(R.id.tv_folder_count)
-        tvCurrentTheme = findViewById(R.id.tv_current_theme)
-        layoutStats = findViewById(R.id.layout_stats)
-        layoutTheme = findViewById(R.id.layout_theme)
-        btnSetup = findViewById(R.id.btn_setup_vault)
-        btnManageNotes = findViewById(R.id.btn_manage_notes)
+        tvVaultSubtitle = findViewById(R.id.tv_vault_subtitle)
+        tvNotesSubtitle = findViewById(R.id.tv_notes_subtitle)
+        cardVault = findViewById(R.id.card_vault)
+        cardNotes = findViewById(R.id.card_notes)
+        layoutInfoRow = findViewById(R.id.layout_info_row)
+        tvInfoFiles = findViewById(R.id.tv_info_files)
+        tvInfoFolders = findViewById(R.id.tv_info_folders)
 
-        btnSetup.setOnClickListener {
-            val intent = Intent(this, VaultSetupActivity::class.java)
-            startActivity(intent)
+        cardVault.setOnClickListener {
+            startActivity(Intent(this, VaultSetupActivity::class.java))
+            overridePendingTransition(R.anim.glass_slide_in_right, R.anim.glass_slide_out_left)
         }
 
-        btnManageNotes.setOnClickListener {
+        cardNotes.setOnClickListener {
             val intent = Intent(this, WidgetConfigActivity::class.java).apply {
                 putExtra("mode", "standalone")
             }
             startActivity(intent)
+            overridePendingTransition(R.anim.glass_slide_in_right, R.anim.glass_slide_out_left)
         }
+
+        animateEntrance()
     }
 
     override fun onResume() {
         super.onResume()
         updateVaultStatus()
+        updateNotesStatus()
     }
 
     private fun updateVaultStatus() {
@@ -55,31 +60,77 @@ class MainActivity : AppCompatActivity() {
         val vaultUri = prefs.getString("obsidian_vault_uri", null)
 
         if (vaultName != null && vaultUri != null) {
-            tvStatus.text = "Connected to: $vaultName"
-            tvStatus.setTextColor(getColor(android.R.color.holo_green_dark))
+            // Connected state
+            tvStatus.text = getString(R.string.status_connected, vaultName)
+            tvStatus.setTextColor(ContextCompat.getColor(this, R.color.app_success))
+            tvStatus.setBackgroundResource(R.drawable.bg_status_chip_connected)
 
-            // Update Stats
+            tvVaultSubtitle.text = getString(R.string.main_vault_connected_to, vaultName)
+
+            // Show info row with file/folder counts
             val mdCount = prefs.getInt("obsidian_vault_md_count", -1)
             val folderCount = prefs.getInt("obsidian_vault_folder_count", -1)
-            
             if (mdCount >= 0) {
-                layoutStats.visibility = android.view.View.VISIBLE
-                tvFileCount.text = "Files: $mdCount"
-                tvFolderCount.text = "Folders: $folderCount"
+                tvInfoFiles.text = getString(R.string.main_info_files, mdCount)
+                tvInfoFolders.text = getString(R.string.main_info_folders, folderCount)
+                showView(layoutInfoRow)
+            } else {
+                hideView(layoutInfoRow)
             }
 
-            // Update Theme Info
-            val activeTheme = prefs.getString("obsidian_active_theme", "Default")
-            layoutTheme.visibility = android.view.View.VISIBLE
-            tvCurrentTheme.text = "Active Theme: $activeTheme"
-            btnManageNotes.visibility = android.view.View.VISIBLE
-
+            showView(cardNotes)
         } else {
-            tvStatus.text = "Not Connected"
-            tvStatus.setTextColor(getColor(android.R.color.darker_gray))
-            layoutStats.visibility = android.view.View.GONE
-            layoutTheme.visibility = android.view.View.GONE
-            btnManageNotes.visibility = android.view.View.GONE
+            // Disconnected state
+            tvStatus.text = getString(R.string.status_not_connected)
+            tvStatus.setTextColor(ContextCompat.getColor(this, R.color.app_warning))
+            tvStatus.setBackgroundResource(R.drawable.bg_status_chip_disconnected)
+
+            tvVaultSubtitle.text = getString(R.string.main_vault_not_connected)
+            hideView(layoutInfoRow)
+            hideView(cardNotes)
         }
+    }
+
+    private fun updateNotesStatus() {
+        val repository = NoteRepository(this)
+        val noteCount = repository.getAllNotes().size
+        tvNotesSubtitle.text = if (noteCount > 0) {
+            getString(R.string.main_notes_subtitle_count, noteCount)
+        } else {
+            getString(R.string.main_notes_subtitle_empty)
+        }
+    }
+
+    private fun showView(view: View) {
+        if (view.visibility == View.VISIBLE) return
+        view.alpha = 0f
+        view.translationY = 12f
+        view.visibility = View.VISIBLE
+        view.animate()
+            .alpha(1f)
+            .translationY(0f)
+            .setDuration(200)
+            .start()
+    }
+
+    private fun hideView(view: View) {
+        if (view.visibility != View.VISIBLE) return
+        view.animate()
+            .alpha(0f)
+            .translationY(8f)
+            .setDuration(160)
+            .withEndAction { view.visibility = View.GONE }
+            .start()
+    }
+
+    private fun animateEntrance() {
+        val scrollContent = findViewById<View>(R.id.scroll_content)
+        scrollContent.alpha = 0f
+        scrollContent.translationY = 16f
+        scrollContent.animate()
+            .alpha(1f)
+            .translationY(0f)
+            .setDuration(300)
+            .start()
     }
 }

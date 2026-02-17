@@ -4,10 +4,15 @@ import android.appwidget.AppWidgetManager
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.util.Log
-import android.widget.ArrayAdapter
+import android.view.View
+import android.view.ViewGroup
+import android.widget.BaseAdapter
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ImageView
 import android.widget.ListView
 import android.widget.TextView
 import android.widget.Toast
@@ -33,6 +38,16 @@ class WidgetConfigActivity : AppCompatActivity() {
     private lateinit var etVaultName: EditText
     private lateinit var lvVaultFiles: ListView
     private lateinit var btnSaveConfig: Button
+    private lateinit var etSearchNotes: EditText
+    private lateinit var tvSelectionCount: TextView
+    private lateinit var tvEmptyState: TextView
+    private lateinit var progressLoading: View
+
+    private lateinit var fileAdapter: VaultFileAdapter
+    private var isStandaloneMode = false
+    private var filteredFiles: List<VaultFileItem> = emptyList()
+    private val selectedUris = mutableSetOf<String>()
+    private var isLoadingFiles = false
 
     private val openDocumentTree = registerForActivityResult(
         ActivityResultContracts.OpenDocumentTree()
@@ -41,20 +56,18 @@ class WidgetConfigActivity : AppCompatActivity() {
 
         scope.launch {
             try {
-                // Take persistent permission
                 val takeFlags = Intent.FLAG_GRANT_READ_URI_PERMISSION or
-                        Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                    Intent.FLAG_GRANT_WRITE_URI_PERMISSION
                 contentResolver.takePersistableUriPermission(uri, takeFlags)
 
                 selectedVaultUri = uri
-                
+
                 val folderName = withContext(Dispatchers.IO) {
                     val docFile = DocumentFile.fromTreeUri(this@WidgetConfigActivity, uri)
                     val name = docFile?.name ?: "Unknown"
 
-                    // Check for .obsidian folder
                     val obsidianFolder = docFile?.listFiles()?.find { it.name == ".obsidian" && it.isDirectory }
-                    
+
                     withContext(Dispatchers.Main) {
                         if (obsidianFolder != null) {
                             Toast.makeText(this@WidgetConfigActivity, "Valid Obsidian vault recognized!", Toast.LENGTH_SHORT).show()
@@ -69,17 +82,13 @@ class WidgetConfigActivity : AppCompatActivity() {
                 etVaultName.setText(folderName)
 
                 loadVaultFiles(uri)
+                updateSaveState()
             } catch (e: Exception) {
                 Log.e("WidgetConfig", "Error setting up vault", e)
                 Toast.makeText(this@WidgetConfigActivity, "Error accessing folder: ${e.message}", Toast.LENGTH_SHORT).show()
             }
         }
     }
-
-    private lateinit var etSearchNotes: EditText
-    private var isStandaloneMode = false
-    private var filteredFiles: List<VaultFileItem> = emptyList()
-    private val selectedUris = mutableSetOf<String>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -105,12 +114,16 @@ class WidgetConfigActivity : AppCompatActivity() {
         initViews()
         setupListeners()
         loadExistingConfig()
+        applyEntranceAnimations()
 
-        if (isStandaloneMode) {
-            btnSaveConfig.text = "Update Widget Notes"
-        }
+        updateSelectionState()
+        updateSaveState()
     }
 
+    override fun finish() {
+        super.finish()
+        overridePendingTransition(R.anim.glass_slide_in_left, R.anim.glass_slide_out_right)
+    }
 
     private fun initViews() {
         btnSelectVault = findViewById(R.id.btn_select_vault)
@@ -119,6 +132,12 @@ class WidgetConfigActivity : AppCompatActivity() {
         lvVaultFiles = findViewById(R.id.lv_vault_files)
         btnSaveConfig = findViewById(R.id.btn_save_config)
         etSearchNotes = findViewById(R.id.et_search_notes)
+        tvSelectionCount = findViewById(R.id.tv_selection_count)
+        tvEmptyState = findViewById(R.id.tv_empty_state)
+        progressLoading = findViewById(R.id.progress_loading)
+
+        fileAdapter = VaultFileAdapter()
+        lvVaultFiles.adapter = fileAdapter
     }
 
     private fun setupListeners() {
@@ -130,58 +149,85 @@ class WidgetConfigActivity : AppCompatActivity() {
             saveConfiguration()
         }
 
-        etSearchNotes.addTextChangedListener(object : android.text.TextWatcher {
+        etSearchNotes.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
                 filterFiles(s?.toString() ?: "")
             }
-            override fun afterTextChanged(s: android.text.Editable?) {}
+            override fun afterTextChanged(s: Editable?) {}
         })
 
-        lvVaultFiles.setOnItemClickListener { _, _, position, _ ->
-            val file = filteredFiles[position]
-            if (lvVaultFiles.isItemChecked(position)) {
-                selectedUris.add(file.relativePath)
-            } else {
-                selectedUris.remove(file.relativePath)
+        etVaultName.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                updateSaveState()
             }
+            override fun afterTextChanged(s: Editable?) {}
+        })
+
+        lvVaultFiles.setOnItemClickListener { parent, view, position, _ ->
+            if (position !in filteredFiles.indices) return@setOnItemClickListener
+            val file = filteredFiles[position]
+            val alreadySelected = selectedUris.contains(file.relativePath)
+
+            if (alreadySelected) {
+                selectedUris.remove(file.relativePath)
+            } else {
+                if (selectedUris.size >= MAX_NOTE_SELECTION) {
+                    Toast.makeText(
+                        this,
+                        getString(R.string.msg_max_notes_reached, MAX_NOTE_SELECTION),
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    return@setOnItemClickListener
+                }
+                selectedUris.add(file.relativePath)
+            }
+
+            view.animate().cancel()
+            view.scaleX = 0.98f
+            view.scaleY = 0.98f
+            view.animate().scaleX(1f).scaleY(1f).setDuration(140).start()
+
+            fileAdapter.notifyDataSetChanged()
+            updateSelectionState()
+            updateSaveState()
+            parent.performHapticFeedback(android.view.HapticFeedbackConstants.VIRTUAL_KEY)
         }
     }
 
     private fun filterFiles(query: String) {
-        filteredFiles = if (query.isEmpty()) {
+        filteredFiles = if (query.isBlank()) {
             vaultFiles
         } else {
-            val q = query.lowercase()
-            val list = mutableListOf<VaultFileItem>()
-            for (file in vaultFiles) {
-                if (file.displayName.lowercase().contains(q)) {
-                    list.add(file)
-                }
+            val normalizedQuery = query.trim().lowercase()
+            vaultFiles.filter {
+                it.displayName.lowercase().contains(normalizedQuery) ||
+                    it.relativePath.lowercase().contains(normalizedQuery)
             }
-            list
         }
         updateAdapter()
     }
 
     private fun updateAdapter() {
-        val fileNames = mutableListOf<String>()
-        for (file in filteredFiles) {
-            fileNames.add(file.displayName)
+        fileAdapter.notifyDataSetChanged()
+
+        if (isLoadingFiles) {
+            lvVaultFiles.visibility = View.INVISIBLE
+            tvEmptyState.visibility = View.GONE
+            return
         }
-        val adapter = ArrayAdapter(
-            this@WidgetConfigActivity,
-            android.R.layout.simple_list_item_multiple_choice,
-            fileNames
-        )
-        lvVaultFiles.adapter = adapter
-        
-        // Restore pre-selections from our Set
-        for (i in filteredFiles.indices) {
-            val file = filteredFiles[i]
-            if (selectedUris.contains(file.relativePath)) {
-                lvVaultFiles.setItemChecked(i, true)
+
+        lvVaultFiles.visibility = View.VISIBLE
+        if (filteredFiles.isEmpty()) {
+            tvEmptyState.visibility = View.VISIBLE
+            tvEmptyState.text = if (vaultFiles.isEmpty()) {
+                getString(R.string.empty_notes_state)
+            } else {
+                getString(R.string.empty_search_state)
             }
+        } else {
+            tvEmptyState.visibility = View.GONE
         }
     }
 
@@ -197,36 +243,50 @@ class WidgetConfigActivity : AppCompatActivity() {
         if (existingName != null) {
             etVaultName.setText(existingName)
         }
+        val repository = NoteRepository(this)
+        repository.getAllNotes().forEach { selectedUris.add(it.obsidianUri) }
+
         if (existingUri != null) {
             selectedVaultUri = Uri.parse(existingUri)
             loadVaultFiles(Uri.parse(existingUri))
         }
-
-        // Initialize selectedUris from repository
-        val repository = NoteRepository(this)
-        repository.getAllNotes().forEach { selectedUris.add(it.obsidianUri) }
     }
 
     private fun loadVaultFiles(vaultUri: Uri) {
         scope.launch {
+            setLoadingState(true)
             try {
                 val newFiles = mutableListOf<VaultFileItem>()
                 withContext(Dispatchers.IO) {
                     val docFile = DocumentFile.fromTreeUri(this@WidgetConfigActivity, vaultUri)
                     docFile?.let { scanForMarkdownFiles(it, "", newFiles) }
                 }
+
+                newFiles.sortBy { it.displayName.lowercase() }
                 vaultFiles.clear()
                 vaultFiles.addAll(newFiles)
+
+                val validPaths = vaultFiles.map { it.relativePath }.toSet()
+                selectedUris.retainAll(validPaths)
+
                 filteredFiles = vaultFiles
                 updateAdapter()
+                updateSelectionState()
+                updateSaveState()
             } catch (e: Exception) {
                 Log.e("WidgetConfig", "Error loading vault files", e)
                 Toast.makeText(this@WidgetConfigActivity, "Error loading files: ${e.message}", Toast.LENGTH_SHORT).show()
+            } finally {
+                setLoadingState(false)
             }
         }
     }
 
-    private fun scanForMarkdownFiles(dir: DocumentFile, parentPath: String, collectedFiles: MutableList<VaultFileItem>) {
+    private fun scanForMarkdownFiles(
+        dir: DocumentFile,
+        parentPath: String,
+        collectedFiles: MutableList<VaultFileItem>
+    ) {
         val files = dir.listFiles()
         files.forEach { file ->
             val relativePath = if (parentPath.isEmpty()) {
@@ -237,7 +297,6 @@ class WidgetConfigActivity : AppCompatActivity() {
 
             if (file.isDirectory) {
                 val name = file.name ?: ""
-                // Skip .obsidian and .trash directories
                 if (!name.startsWith(".")) {
                     scanForMarkdownFiles(file, relativePath, collectedFiles)
                 }
@@ -256,6 +315,7 @@ class WidgetConfigActivity : AppCompatActivity() {
 
     private fun saveConfiguration() {
         Log.d("WidgetConfig", "saveConfiguration called, appWidgetId=$appWidgetId")
+
         val vaultName = etVaultName.text.toString().trim()
         if (vaultName.isEmpty()) {
             Toast.makeText(this, getString(R.string.msg_select_vault_first), Toast.LENGTH_SHORT).show()
@@ -267,6 +327,11 @@ class WidgetConfigActivity : AppCompatActivity() {
             return
         }
 
+        if (selectedUris.isEmpty()) {
+            Toast.makeText(this, getString(R.string.msg_select_notes_required), Toast.LENGTH_SHORT).show()
+            return
+        }
+
         val prefs = getSharedPreferences("obsidian_widget_prefs", MODE_PRIVATE)
         prefs.edit()
             .putString("obsidian_vault_uri", selectedVaultUri.toString())
@@ -274,68 +339,59 @@ class WidgetConfigActivity : AppCompatActivity() {
             .putString("obsidian_vault_name", vaultName)
             .apply()
 
-        // Add selected notes on a background thread, then finish
         val repository = NoteRepository(this)
-        // Collect all selected files (from vaultFiles, not just what's visible in ListView)
-        val selectedFiles = mutableListOf<VaultFileItem>()
-        for (file in vaultFiles) {
-            if (selectedUris.contains(file.relativePath)) {
-                selectedFiles.add(file)
-            }
-        }
-
-        // Limit to 20 notes
-        val finalSelection = selectedFiles.take(20)
+        val selectedFiles = vaultFiles.filter { selectedUris.contains(it.relativePath) }
+        val finalSelection = selectedFiles.take(MAX_NOTE_SELECTION)
 
         scope.launch {
-            withContext(Dispatchers.IO) {
-                val newNotes = mutableListOf<NoteModel>()
-                for (fileItem in finalSelection) {
-                    try {
-                        val content = readFileContent(fileItem.uri)
-                        val note = NoteModel(
-                            id = UUID.randomUUID().toString(),
-                            title = fileItem.displayName.substringAfterLast("/"),
-                            content = content.take(2000),
-                            obsidianUri = fileItem.relativePath,
-                            lastModified = fileItem.lastModified
-                        )
-                        newNotes.add(note)
-                    } catch (_: Exception) {
-                        // Skip files that can't be read
+            setLoadingState(true)
+            try {
+                withContext(Dispatchers.IO) {
+                    val newNotes = mutableListOf<NoteModel>()
+                    for (fileItem in finalSelection) {
+                        try {
+                            val content = readFileContent(fileItem.uri)
+                            val note = NoteModel(
+                                id = UUID.randomUUID().toString(),
+                                title = fileItem.displayName.substringAfterLast("/"),
+                                content = content.take(50000),
+                                obsidianUri = fileItem.relativePath,
+                                lastModified = fileItem.lastModified
+                            )
+                            newNotes.add(note)
+                        } catch (_: Exception) {
+                            // Skip files that can't be read
+                        }
+                    }
+
+                    repository.clearAllNotes()
+                    for (note in newNotes) {
+                        repository.addNote(note)
                     }
                 }
-                
-                // Replace all notes in the repository
-                repository.clearAllNotes()
-                for (note in newNotes) {
-                    repository.addNote(note)
+
+                if (isStandaloneMode) {
+                    val appWidgetManager = AppWidgetManager.getInstance(this@WidgetConfigActivity)
+                    val ids = appWidgetManager.getAppWidgetIds(
+                        android.content.ComponentName(this@WidgetConfigActivity, NoteWidgetProvider::class.java)
+                    )
+                    for (id in ids) {
+                        NoteWidgetProvider.updateWidget(this@WidgetConfigActivity, id)
+                    }
+                } else if (appWidgetId != AppWidgetManager.INVALID_APPWIDGET_ID) {
+                    NoteWidgetProvider.updateWidget(this@WidgetConfigActivity, appWidgetId)
+
+                    val resultValue = Intent().apply {
+                        putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
+                    }
+                    setResult(RESULT_OK, resultValue)
                 }
+
+                Toast.makeText(this@WidgetConfigActivity, getString(R.string.msg_config_saved), Toast.LENGTH_SHORT).show()
+                finish()
+            } finally {
+                setLoadingState(false)
             }
-
-            // Trigger widget update
-            Log.d("WidgetConfig", "Setting result OK for widget $appWidgetId")
-            
-            // If standalone, we should notify ALL widgets
-            if (isStandaloneMode) {
-                val appWidgetManager = AppWidgetManager.getInstance(this@WidgetConfigActivity)
-                val ids = appWidgetManager.getAppWidgetIds(
-                    android.content.ComponentName(this@WidgetConfigActivity, NoteWidgetProvider::class.java)
-                )
-                for (id in ids) {
-                    NoteWidgetProvider.updateWidget(this@WidgetConfigActivity, id)
-                }
-            } else if (appWidgetId != AppWidgetManager.INVALID_APPWIDGET_ID) {
-                NoteWidgetProvider.updateWidget(this@WidgetConfigActivity, appWidgetId)
-
-                val resultValue = Intent().apply {
-                    putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
-                }
-                setResult(RESULT_OK, resultValue)
-            }
-
-            Toast.makeText(this@WidgetConfigActivity, getString(R.string.msg_config_saved), Toast.LENGTH_SHORT).show()
-            finish()
         }
     }
 
@@ -343,10 +399,115 @@ class WidgetConfigActivity : AppCompatActivity() {
         return contentResolver.openInputStream(uri)?.bufferedReader()?.use { it.readText() } ?: ""
     }
 
+    private fun updateSelectionState() {
+        val selectedCount = selectedUris.size.coerceAtMost(MAX_NOTE_SELECTION)
+        tvSelectionCount.text = getString(R.string.selection_count_dynamic, selectedCount)
+        btnSaveConfig.text = if (isStandaloneMode) {
+            getString(R.string.btn_update_config_dynamic, selectedCount)
+        } else {
+            getString(R.string.btn_save_config_dynamic, selectedCount)
+        }
+    }
+
+    private fun updateSaveState() {
+        val isReady = selectedVaultUri != null &&
+            etVaultName.text.toString().trim().isNotEmpty() &&
+            selectedUris.isNotEmpty() &&
+            !isLoadingFiles
+
+        btnSaveConfig.isEnabled = isReady
+        btnSaveConfig.alpha = if (isReady) 1f else 0.62f
+    }
+
+    private fun setLoadingState(isLoading: Boolean) {
+        isLoadingFiles = isLoading
+        progressLoading.visibility = if (isLoading) View.VISIBLE else View.GONE
+        updateAdapter()
+        updateSaveState()
+    }
+
+    private fun applyEntranceAnimations() {
+        val views = listOf(
+            findViewById<View>(R.id.card_config_header),
+            findViewById<View>(R.id.card_vault_info),
+            findViewById<View>(R.id.card_note_selection),
+            btnSaveConfig
+        )
+
+        views.forEachIndexed { index, view ->
+            view.alpha = 0f
+            view.translationY = 20f
+            view.animate()
+                .alpha(1f)
+                .translationY(0f)
+                .setDuration(280)
+                .setStartDelay((index * 75).toLong())
+                .start()
+        }
+    }
+
+    private inner class VaultFileAdapter : BaseAdapter() {
+        override fun getCount(): Int = filteredFiles.size
+
+        override fun getItem(position: Int): Any = filteredFiles[position]
+
+        override fun getItemId(position: Int): Long = position.toLong()
+
+        override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
+            val holder: ViewHolder
+            val itemView: View
+
+            if (convertView == null) {
+                itemView = layoutInflater.inflate(R.layout.item_config_note, parent, false)
+                holder = ViewHolder(
+                    root = itemView.findViewById(R.id.item_root),
+                    title = itemView.findViewById(R.id.tv_note_title),
+                    path = itemView.findViewById(R.id.tv_note_path),
+                    checkIcon = itemView.findViewById(R.id.iv_note_check)
+                )
+                itemView.tag = holder
+            } else {
+                itemView = convertView
+                holder = convertView.tag as ViewHolder
+            }
+
+            val file = filteredFiles[position]
+            val isSelected = selectedUris.contains(file.relativePath)
+
+            holder.title.text = file.displayName.substringAfterLast("/")
+            val parentPath = file.displayName.substringBeforeLast("/", "")
+            holder.path.text = if (parentPath.isBlank()) {
+                getString(R.string.vault_root_label)
+            } else {
+                parentPath
+            }
+
+            holder.root.isActivated = isSelected
+            holder.checkIcon.setImageResource(
+                if (isSelected) R.drawable.ic_check_box else R.drawable.ic_check_box_outline_blank
+            )
+            holder.checkIcon.alpha = if (isSelected) 1f else 0.8f
+
+            return itemView
+        }
+    }
+
+    private data class ViewHolder(
+        val root: View,
+        val title: TextView,
+        val path: TextView,
+        val checkIcon: ImageView
+    )
+
     private data class VaultFileItem(
         val displayName: String,
         val relativePath: String,
         val uri: Uri,
         val lastModified: Long
     )
+
+    companion object {
+        private const val MAX_NOTE_SELECTION = 20
+    }
 }
+
