@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="@color/obsidian_bg_primary">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Obsidian Vault Setup"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:textColor="@color/obsidian_text_primary"
+        android:layout_marginBottom="24dp" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Select your Obsidian vault folder to grant the widget access to your notes. The widget will read markdown files and apply your Obsidian theme settings."
+        android:textSize="14sp"
+        android:textColor="@color/obsidian_text_secondary"
+        android:layout_marginBottom="16dp" />
+
+    <TextView
+        android:id="@+id/tv_vault_status"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="No vault configured"
+        android:textSize="14sp"
+        android:textColor="@color/obsidian_text_primary"
+        android:padding="12dp"
+        android:background="@drawable/edit_text_dark_bg"
+        android:layout_marginBottom="16dp" />
+
+    <Button
+        android:id="@+id/btn_select_vault"
+        style="@style/Widget.ObsidianWidget.Button.Accent"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Select Vault Folder"
+        android:layout_marginBottom="12dp" />
+
+    <Button
+        android:id="@+id/btn_test_access"
+        style="@style/Widget.ObsidianWidget.Button.Accent"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Test Vault Access"
+        android:enabled="false" />
+
+</LinearLayout>

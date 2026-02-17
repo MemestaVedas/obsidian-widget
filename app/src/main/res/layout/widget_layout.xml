@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/widget_background"
+    android:clipToOutline="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <!-- Scrollable Note Content (vertical scroll via ListView) -->
+        <ListView
+            android:id="@+id/note_list_view"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:divider="@null"
+            android:dividerHeight="0dp"
+            android:scrollbars="none"
+            android:fadingEdge="vertical"
+            android:fadingEdgeLength="16dp"
+            android:headerDividersEnabled="false"
+            android:footerDividersEnabled="false"
+            android:listSelector="@android:color/transparent" />
+
+        <!-- Bottom Navigation Bar -->
+        <LinearLayout
+            android:id="@+id/nav_bar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:paddingTop="4dp"
+            android:paddingBottom="6dp">
+
+            <!-- Previous Note -->
+            <TextView
+                android:id="@+id/btn_prev"
+                android:layout_width="36dp"
+                android:layout_height="28dp"
+                android:gravity="center"
+                android:text="‹"
+                android:textColor="#88FFFFFF"
+                android:textSize="18sp"
+                android:background="?android:attr/selectableItemBackground" />
+
+            <!-- Page Indicator Dots -->
+            <TextView
+                android:id="@+id/page_indicator_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:paddingStart="8dp"
+                android:paddingEnd="8dp"
+                android:text=""
+                android:textColor="#66FFFFFF"
+                android:textSize="10sp"
+                android:letterSpacing="0.3" />
+
+            <!-- Next Note -->
+            <TextView
+                android:id="@+id/btn_next"
+                android:layout_width="36dp"
+                android:layout_height="28dp"
+                android:gravity="center"
+                android:text="›"
+                android:textColor="#88FFFFFF"
+                android:textSize="18sp"
+                android:background="?android:attr/selectableItemBackground" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- Warning badge when Obsidian is not installed -->
+    <ImageView
+        android:id="@+id/warning_badge"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:layout_gravity="top|end"
+        android:layout_margin="8dp"
+        android:src="@drawable/ic_warning"
+        android:visibility="gone"
+        android:contentDescription="Obsidian not installed" />
+
+    <!-- Page dots container (kept for compatibility, hidden) -->
+    <LinearLayout
+        android:id="@+id/page_dots_container"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|center_horizontal"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:visibility="gone">
+
+        <ImageView android:id="@+id/dot_0" android:layout_width="8dp" android:layout_height="8dp" android:layout_margin="2dp" android:src="@drawable/dot_inactive" android:visibility="gone" />
+        <ImageView android:id="@+id/dot_1" android:layout_width="8dp" android:layout_height="8dp" android:layout_margin="2dp" android:src="@drawable/dot_inactive" android:visibility="gone" />
+        <ImageView android:id="@+id/dot_2" android:layout_width="8dp" android:layout_height="8dp" android:layout_margin="2dp" android:src="@drawable/dot_inactive" android:visibility="gone" />
+        <ImageView android:id="@+id/dot_3" android:layout_width="8dp" android:layout_height="8dp" android:layout_margin="2dp" android:src="@drawable/dot_inactive" android:visibility="gone" />
+        <ImageView android:id="@+id/dot_4" android:layout_width="8dp" android:layout_height="8dp" android:layout_margin="2dp" android:src="@drawable/dot_inactive" android:visibility="gone" />
+        <ImageView android:id="@+id/dot_5" android:layout_width="8dp" android:layout_height="8dp" android:layout_margin="2dp" android:src="@drawable/dot_inactive" android:visibility="gone" />
+        <ImageView android:id="@+id/dot_6" android:layout_width="8dp" android:layout_height="8dp" android:layout_margin="2dp" android:src="@drawable/dot_inactive" android:visibility="gone" />
+        <ImageView android:id="@+id/dot_7" android:layout_width="8dp" android:layout_height="8dp" android:layout_margin="2dp" android:src="@drawable/dot_inactive" android:visibility="gone" />
+        <ImageView android:id="@+id/dot_8" android:layout_width="8dp" android:layout_height="8dp" android:layout_margin="2dp" android:src="@drawable/dot_inactive" android:visibility="gone" />
+        <ImageView android:id="@+id/dot_9" android:layout_width="8dp" android:layout_height="8dp" android:layout_margin="2dp" android:src="@drawable/dot_inactive" android:visibility="gone" />
+
+    </LinearLayout>
+
+    <!-- Action overlay (shown on long-press) -->
+    <FrameLayout
+        android:id="@+id/action_overlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/overlay_background"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:orientation="vertical"
+            android:gravity="center">
+
+            <TextView
+                android:id="@+id/action_add_note"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/action_add_note"
+                android:textColor="#FFFFFF"
+                android:textSize="16sp"
+                android:paddingTop="12dp"
+                android:paddingBottom="12dp"
+                android:paddingStart="24dp"
+                android:paddingEnd="24dp"
+                android:background="@drawable/btn_overlay_action" />
+
+            <TextView
+                android:id="@+id/action_remove_current"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/action_remove_current"
+                android:textColor="#FFFFFF"
+                android:textSize="16sp"
+                android:paddingTop="12dp"
+                android:paddingBottom="12dp"
+                android:paddingStart="24dp"
+                android:paddingEnd="24dp"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/btn_overlay_action" />
+
+            <TextView
+                android:id="@+id/action_reorder"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/action_reorder"
+                android:textColor="#FFFFFF"
+                android:textSize="16sp"
+                android:paddingTop="12dp"
+                android:paddingBottom="12dp"
+                android:paddingStart="24dp"
+                android:paddingEnd="24dp"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/btn_overlay_action" />
+
+            <TextView
+                android:id="@+id/action_settings"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/action_settings"
+                android:textColor="#FFFFFF"
+                android:textSize="16sp"
+                android:paddingTop="12dp"
+                android:paddingBottom="12dp"
+                android:paddingStart="24dp"
+                android:paddingEnd="24dp"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/btn_overlay_action" />
+
+        </LinearLayout>
+
+    </FrameLayout>
+
+</FrameLayout>

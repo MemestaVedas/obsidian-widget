@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Obsidian diamond/gem shape centered in adaptive icon safe zone -->
+    <path
+        android:fillColor="#7C3AED"
+        android:pathData="M54,28 L72,54 L54,80 L36,54 Z" />
+    <!-- Inner facet highlight -->
+    <path
+        android:fillColor="#9061F9"
+        android:pathData="M54,28 L64,48 L54,54 L44,48 Z" />
+    <!-- Bottom facet darker shade -->
+    <path
+        android:fillColor="#6D28D9"
+        android:pathData="M54,54 L64,48 L72,54 L54,80 Z" />
+</vector>

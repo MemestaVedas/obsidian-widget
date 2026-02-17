@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="8dp">
+
+    <!-- Note title (compact) -->
+    <TextView
+        android:id="@+id/note_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="12sp"
+        android:textStyle="bold"
+        android:textColor="#dcddde"
+        android:paddingBottom="4dp" />
+
+    <!-- Divider -->
+    <View
+        android:id="@+id/note_divider"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#3d3d3d"
+        android:layout_marginBottom="6dp" />
+
+    <!-- Note body content (compact, max 3 lines) -->
+    <TextView
+        android:id="@+id/note_body"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="11sp"
+        android:textColor="#dcddde"
+        android:lineSpacingMultiplier="1.5"
+        android:maxLines="3"
+        android:ellipsize="end" />
+
+</LinearLayout>

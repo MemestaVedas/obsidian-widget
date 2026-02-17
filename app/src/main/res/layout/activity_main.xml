@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:gravity="center_horizontal">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Obsidian Widget"
+        android:textSize="28sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="32dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Current Vault"
+        android:textSize="18sp"
+        android:layout_marginBottom="8dp" />
+
+    <TextView
+        android:id="@+id/tv_vault_status"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Not Connected"
+        android:textSize="16sp"
+        android:textColor="@android:color/darker_gray"
+        android:layout_marginBottom="24dp" />
+
+    <!-- Vault Stats -->
+    <LinearLayout
+        android:id="@+id/layout_stats"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="#1A000000"
+        android:padding="16dp"
+        android:layout_marginBottom="16dp"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Vault Statistics"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp"/>
+
+        <TextView
+            android:id="@+id/tv_file_count"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Files: -" />
+        
+        <TextView
+            android:id="@+id/tv_folder_count"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Folders: -" />
+    </LinearLayout>
+
+    <!-- Theme Info -->
+    <LinearLayout
+        android:id="@+id/layout_theme"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="#1A000000"
+        android:padding="16dp"
+        android:layout_marginBottom="32dp"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Theme Information"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp"/>
+
+        <TextView
+            android:id="@+id/tv_current_theme"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Active Theme: -" />
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/btn_setup_vault"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Setup / Change Vault"
+        android:layout_marginBottom="8dp" />
+
+    <Button
+        android:id="@+id/btn_manage_notes"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Manage Widget Notes"
+        android:layout_marginBottom="16dp"
+        android:visibility="gone" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="This will configure the default vault for new widgets."
+        android:textSize="14sp"
+        android:gravity="center"
+        android:textColor="@android:color/darker_gray" />
+
+</LinearLayout>

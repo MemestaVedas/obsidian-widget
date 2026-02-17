@@ -1,0 +1,57 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/note_card_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/max_obsidian_deep">
+
+    <!-- Content Area with Gradients -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_marginStart="6dp"
+        android:layout_marginEnd="6dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/note_content"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:paddingTop="12dp"
+                    android:paddingBottom="8dp"
+                    android:textColor="@color/max_text_main"
+                    android:textSize="11sp"
+                    android:lineSpacingExtra="2dp"
+                    android:ellipsize="end" />
+
+                <!-- Progress Indicator -->
+                <TextView
+                    android:id="@+id/page_indicator"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:paddingBottom="8dp"
+                    android:text="• • ● • •"
+                    android:textColor="#66FFFFFF"
+                    android:textSize="10sp"
+                    android:letterSpacing="0.4"
+                    android:textStyle="bold" />
+
+            </LinearLayout>
+
+        <!-- Bottom Fade Gradient (Keep only bottom to show more is below) -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="24dp"
+            android:layout_gravity="bottom"
+            android:background="@drawable/fade_bottom_gradient" />
+
+    </FrameLayout>
+
+</LinearLayout>
