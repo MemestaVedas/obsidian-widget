@@ -24,6 +24,18 @@ class MarkdownRenderer(private val context: Context) {
         val truncateLength: Int = 50000
     )
 
+    private companion object {
+        val PATTERN_BOLD_1 = Pattern.compile("\\*\\*(.+?)\\*\\*")
+        val PATTERN_BOLD_2 = Pattern.compile("__(.+?)__")
+        val PATTERN_ITALIC_1 = Pattern.compile("\\*(.+?)\\*")
+        val PATTERN_ITALIC_2 = Pattern.compile("_(.+?)_")
+        val PATTERN_STRIKETHROUGH = Pattern.compile("~~(.+?)~~")
+        val PATTERN_CODE = Pattern.compile("`(.+?)`")
+        val PATTERN_WIKILINK = Pattern.compile("\\[\\[(.+?)\\]\\]")
+        val PATTERN_EXTLINK = Pattern.compile("\\[(.+?)\\]\\((.+?)\\)")
+        val PATTERN_HIGHLIGHT = Pattern.compile("==(.+?)==")
+    }
+
     /**
      * Render markdown content to styled Spannable text
      */
@@ -264,90 +276,80 @@ class MarkdownRenderer(private val context: Context) {
         val builder = SpannableStringBuilder(text)
 
         // Bold: **text** or __text__
-        applySimpleSpan(builder, "\\*\\*(.+?)\\*\\*", { StyleSpan(Typeface.BOLD) })
-        applySimpleSpan(builder, "__(.+?)__", { StyleSpan(Typeface.BOLD) })
+        applySpanPattern(builder, PATTERN_BOLD_1, { it }, { StyleSpan(Typeface.BOLD) })
+        applySpanPattern(builder, PATTERN_BOLD_2, { it }, { StyleSpan(Typeface.BOLD) })
 
         // Italic: *text* or _text_
-        applySimpleSpan(builder, "\\*(.+?)\\*", { StyleSpan(Typeface.ITALIC) })
-        applySimpleSpan(builder, "_(.+?)_", { StyleSpan(Typeface.ITALIC) })
+        applySpanPattern(builder, PATTERN_ITALIC_1, { it }, { StyleSpan(Typeface.ITALIC) })
+        applySpanPattern(builder, PATTERN_ITALIC_2, { it }, { StyleSpan(Typeface.ITALIC) })
 
         // Strikethrough: ~~text~~
-        applySimpleSpan(builder, "~~(.+?)~~", { StrikethroughSpan() })
+        applySpanPattern(builder, PATTERN_STRIKETHROUGH, { it }, { StrikethroughSpan() })
 
         // Inline code: `code`
-        applySimpleSpan(builder, "`(.+?)`", 
+        applySpanPattern(builder, PATTERN_CODE, { it },
             { TypefaceSpan("monospace") },
             { BackgroundColorSpan(options.backgroundColor) },
             { ForegroundColorSpan(options.accentColor) }
         )
 
         // Wikilinks: [[Note Name]] -> Note Name (accent color)
-        applySpanPattern(builder, "\\[\\[(.+?)\\]\\]",
-            { it.split("|").firstOrNull() ?: it },
+        applySpanPattern(builder, PATTERN_WIKILINK,
+            { it.split("|").lastOrNull()?.trim() ?: it }, // Use alias if present
             { ForegroundColorSpan(options.accentColor) },
             { UnderlineSpan() }
         )
 
         // External links: [text](url) -> text (underlined, accent color)
-        applySpanPattern(builder, "\\[(.+?)\\]\\((.+?)\\)",
+        applySpanPattern(builder, PATTERN_EXTLINK,
             { it },
             { ForegroundColorSpan(options.accentColor) },
             { UnderlineSpan() }
         )
 
         // Highlight: ==text== -> highlighted background
-        applySimpleSpan(builder, "==(.+?)==",
+        applySpanPattern(builder, PATTERN_HIGHLIGHT,
+            { it },
             { BackgroundColorSpan(options.accentColor and 0x40FFFFFF) }
         )
 
         return builder
     }
 
-    private fun applySimpleSpan(
-        builder: SpannableStringBuilder,
-        pattern: String,
-        vararg spans: () -> Any
-    ) {
-        applySpanPattern(builder, pattern, { it }, *spans)
-    }
-
     private fun applySpanPattern(
         builder: SpannableStringBuilder,
-        pattern: String,
+        pattern: Pattern,
         contentTransformer: (String) -> String,
         vararg spans: () -> Any
     ) {
-        val regex = Pattern.compile(pattern)
-        var offset = 0
-
-        while (true) {
-            val matcher = regex.matcher(builder.toString())
-            if (!matcher.find(offset)) break
-
-            val fullMatchStart = matcher.start()
-            val fullMatchEnd = matcher.end()
-            val content = matcher.group(1) ?: continue
-            val transformedContent = contentTransformer(content)
-
-            // Replace full match with transformed content
-            builder.replace(fullMatchStart, fullMatchEnd, transformedContent)
+        val text = builder.toString()
+        val matcher = pattern.matcher(text)
+        
+        // Find all matches first to avoid concurrent modification issues
+        val matches = mutableListOf<Triple<Int, Int, String>>()
+        while (matcher.find()) {
+            val content = matcher.group(1) ?: ""
+            matches.add(Triple(matcher.start(), matcher.end(), content))
+        }
+        
+        // Process matches in REVERSE order so indices stay valid after replacement
+        for (i in matches.indices.reversed()) {
+            val (start, end, content) = matches[i]
+            val transformed = contentTransformer(content)
+            
+            // Replace the full match with the transformed content
+            builder.replace(start, end, transformed)
             
             // Apply all spans to the new range
             for (spanProvider in spans) {
                 builder.setSpan(
                     spanProvider(),
-                    fullMatchStart,
-                    fullMatchStart + transformedContent.length,
+                    start,
+                    start + transformed.length,
                     Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
                 )
             }
-
-            // Move offset forward to avoid infinite loop
-            offset = fullMatchStart + transformedContent.length
         }
     }
 
-    companion object {
-        private val codeMatcher = Pattern.compile("`(.+?)`")
-    }
 }

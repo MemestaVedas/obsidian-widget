@@ -87,56 +87,53 @@ class NoteContentFactory(
         val newItems = mutableListOf<WidgetItem>()
         val textBuffer = StringBuilder()
 
+        val MAX_SEGMENT_SIZE = 8000 // Avoid binder limit of 1MB
+
+        fun flushTextBuffer() {
+            if (textBuffer.isNotEmpty()) {
+                if (textBuffer.endsWith("\n")) textBuffer.setLength(textBuffer.length - 1)
+                val renderedText = renderer.render(textBuffer.toString(), options)
+                if (renderedText.isNotEmpty()) {
+                    newItems.add(WidgetItem.Text(renderedText))
+                }
+                textBuffer.clear()
+            }
+        }
+
         // Split content by lines to identify checkboxes
         val lines = note.content.lines()
 
         for ((index, line) in lines.withIndex()) {
             val trimmed = line.trimStart()
             
-            // Check usage of regex for checkbox detection: "- [ ] " or "- [x] "
-            // We use simple string checks for performance
             val isUnchecked = trimmed.startsWith("- [ ]")
             val isChecked = trimmed.startsWith("- [x]")
 
             if (isUnchecked || isChecked) {
-                // If we have accumulated text, render and add it first
-                if (textBuffer.isNotEmpty()) {
-                    // Remove trailing newline
-                    if (textBuffer.endsWith("\n")) textBuffer.setLength(textBuffer.length - 1)
-                    
-                    val renderedText = renderer.render(textBuffer.toString(), options)
-                    if (renderedText.isNotEmpty()) {
-                        newItems.add(WidgetItem.Text(renderedText))
-                    }
-                    textBuffer.clear()
-                }
+                flushTextBuffer()
 
                 // Add the checkbox item
-                val checkboxContent = line.substringAfter("]").trim() // Strip "- [ ]"
-                // Render the checkbox text with formatting support
+                val checkboxContent = line.substringAfter("]").trim()
                 val renderedLabel = renderer.renderLine(checkboxContent, options)
                 
                 newItems.add(WidgetItem.Checkbox(
                     text = renderedLabel,
                     isChecked = isChecked,
-                    originalLine = line, // Keep original line for identification/updating
+                    originalLine = line,
                     lineIndex = index
                 ))
             } else {
                 // Regular line, append to buffer
                 textBuffer.append(line).append("\n")
+                
+                // If the buffer grows too large, segment it to keep RemoteViews size manageable
+                if (textBuffer.length > MAX_SEGMENT_SIZE) {
+                    flushTextBuffer()
+                }
             }
         }
 
-        // Add remaining text buffer
-        if (textBuffer.isNotEmpty()) {
-            if (textBuffer.endsWith("\n")) textBuffer.setLength(textBuffer.length - 1)
-            val renderedText = renderer.render(textBuffer.toString(), options)
-            if (renderedText.isNotEmpty()) {
-                newItems.add(WidgetItem.Text(renderedText))
-            }
-        }
-
+        flushTextBuffer()
         items = newItems
     }
 
@@ -174,15 +171,15 @@ class NoteContentFactory(
                 val tintColor = if (item.isChecked) R.color.app_text_muted else R.color.app_text_secondary
                 
                 rv.setImageViewResource(R.id.iv_checkbox, iconRes)
+                
+                // Using setInt for setColorFilter is okay, but let's be safe
                 rv.setInt(R.id.iv_checkbox, "setColorFilter", ContextCompat.getColor(context, tintColor))
                 
-                // Strike-through if checked? Maybe let the user decide. Usually checked = strike.
-                // The MarkdownRenderer.renderLine handles formatting, but strikethrough logic belongs there.
-                // For simplicity, let's trust renderLine, but maybe add opacity for checked items?
+                // Strike-through and opacity for checked items
                 if (item.isChecked) {
-                    rv.setInt(R.id.tv_checkbox_text, "setAlpha", 150) // dim it
+                    rv.setFloat(R.id.tv_checkbox_text, "setAlpha", 0.5f)
                 } else {
-                    rv.setInt(R.id.tv_checkbox_text, "setAlpha", 255)
+                    rv.setFloat(R.id.tv_checkbox_text, "setAlpha", 1.0f)
                 }
 
                 // Click on CHECKBOX icon toggles state
